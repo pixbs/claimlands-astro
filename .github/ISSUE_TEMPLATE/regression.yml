@@ -1,0 +1,17 @@
+name: Regression
+description: A reproducible behavior that needs a permanent test.
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Revision, platform/backend, level/seed, steps, expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and acceptance
+      description: Attach minimized inputs/logs, identify subsystem, and describe the regression test.
+    validations:
+      required: true

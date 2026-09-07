@@ -1,0 +1,37 @@
+name: Game feature
+description: A bounded behavior with ownership and automated acceptance.
+title: ""
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected behavior
+      description: State the player-visible outcome and link authoritative rules.
+    validations:
+      required: true
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Owned subsystem
+      options: [world, visuals, renderer, application, platform, gameplay, infrastructure, documentation]
+    validations:
+      required: true
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites and unresolved decisions
+      description: Link prerequisite issues/PRs. Open rule decisions block their behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance checks
+      description: Specify outcomes, automated test commands, fixed fixtures, and preview interaction.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: State shared contracts affected and features excluded from this issue.

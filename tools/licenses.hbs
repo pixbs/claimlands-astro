@@ -1,0 +1,13 @@
+Claim Lands dependency notices
+Original project work Copyright 2026 pixbs, CC BY-NC-SA 4.0.
+The following dependencies retain their own licenses.
+
+{{#each licenses}}
+{{name}}
+Used by:
+{{#each used_by}}
+  {{crate.name}} {{crate.version}} {{crate.repository}}
+{{/each}}
+{{{text}}}
+
+{{/each}}

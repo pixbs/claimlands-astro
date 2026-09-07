@@ -1,0 +1,37 @@
+{
+  "name": "Block prohibited branch names",
+  "target": "branch",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": [
+        "refs/heads/*[cC][lL][aA][uU][dD][eE]*",
+        "refs/heads/**/*[cC][lL][aA][uU][dD][eE]*",
+        "refs/heads/*[cC][oO][dD][eE][xX]*",
+        "refs/heads/**/*[cC][oO][dD][eE][xX]*",
+        "refs/heads/*[kK][iI][mM][iI]*",
+        "refs/heads/**/*[kK][iI][mM][iI]*",
+        "refs/heads/*[cC][hH][aA][tT][gG][pP][tT]*",
+        "refs/heads/**/*[cC][hH][aA][tT][gG][pP][tT]*",
+        "refs/heads/*[gG][eE][mM][iI][nN][iI]*",
+        "refs/heads/**/*[gG][eE][mM][iI][nN][iI]*",
+        "refs/heads/*[cC][oO][pP][iI][lL][oO][tT]*",
+        "refs/heads/**/*[cC][oO][pP][iI][lL][oO][tT]*",
+        "refs/heads/*[dD][eE][eE][pP][sS][eE][eE][kK]*",
+        "refs/heads/**/*[dD][eE][eE][pP][sS][eE][eE][kK]*",
+        "refs/heads/*[aA][nN][tT][hH][rR][oO][pP][iI][cC]*",
+        "refs/heads/**/*[aA][nN][tT][hH][rR][oO][pP][iI][cC]*"
+      ],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "creation"
+    },
+    {
+      "type": "update"
+    }
+  ]
+}

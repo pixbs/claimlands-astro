@@ -1,0 +1,37 @@
+{
+  "name": "Block prohibited tag names",
+  "target": "tag",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": [
+        "refs/tags/*[cC][lL][aA][uU][dD][eE]*",
+        "refs/tags/**/*[cC][lL][aA][uU][dD][eE]*",
+        "refs/tags/*[cC][oO][dD][eE][xX]*",
+        "refs/tags/**/*[cC][oO][dD][eE][xX]*",
+        "refs/tags/*[kK][iI][mM][iI]*",
+        "refs/tags/**/*[kK][iI][mM][iI]*",
+        "refs/tags/*[cC][hH][aA][tT][gG][pP][tT]*",
+        "refs/tags/**/*[cC][hH][aA][tT][gG][pP][tT]*",
+        "refs/tags/*[gG][eE][mM][iI][nN][iI]*",
+        "refs/tags/**/*[gG][eE][mM][iI][nN][iI]*",
+        "refs/tags/*[cC][oO][pP][iI][lL][oO][tT]*",
+        "refs/tags/**/*[cC][oO][pP][iI][lL][oO][tT]*",
+        "refs/tags/*[dD][eE][eE][pP][sS][eE][eE][kK]*",
+        "refs/tags/**/*[dD][eE][eE][pP][sS][eE][eE][kK]*",
+        "refs/tags/*[aA][nN][tT][hH][rR][oO][pP][iI][cC]*",
+        "refs/tags/**/*[aA][nN][tT][hH][rR][oO][pP][iI][cC]*"
+      ],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "creation"
+    },
+    {
+      "type": "update"
+    }
+  ]
+}

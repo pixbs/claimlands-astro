@@ -1,0 +1,41 @@
+name: Extended core validation
+on:
+  schedule: [{ cron: '23 2 * * *' }]
+  workflow_dispatch:
+permissions: { contents: read }
+jobs:
+  properties:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - run: rustup toolchain install 1.95.0 --profile minimal
+      - run: cargo test --locked -p claimlands-world -p claimlands-visuals
+        env: { PROPTEST_CASES: '4096' }
+  mutations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - run: rustup toolchain install 1.95.0 --profile minimal
+      - uses: taiki-e/install-action@84f5ac3124727fb3d284d4d22ee9ab3654fd09a6
+        with: { tool: 'cargo-mutants@27.1.0' }
+      - run: python tools/run_mutations.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with: { name: nightly-mutations, path: mutants.out/, if-no-files-found: error }
+  fuzz:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - run: rustup toolchain install nightly-2026-09-06 --profile minimal
+      - uses: taiki-e/install-action@84f5ac3124727fb3d284d4d22ee9ab3654fd09a6
+        with: { tool: 'cargo-fuzz@0.13.2' }
+      - run: cargo +nightly-2026-09-06 fuzz run level_ron -- -max_total_time=600 -max_len=1048576 -rss_limit_mb=2048
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with: { name: fuzz-reproducers, path: 'fuzz/artifacts/', if-no-files-found: ignore }
