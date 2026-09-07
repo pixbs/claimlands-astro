@@ -1,0 +1,23 @@
+[package]
+name = "claimlands-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+license = "CC-BY-NC-SA-4.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "=0.4.10"
+claimlands-world = { path = "../crates/world" }
+
+[[bin]]
+name = "level_ron"
+path = "fuzz_targets/level_ron.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]
