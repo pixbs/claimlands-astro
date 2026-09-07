@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100d20">
+<title>Claim Lands</title>
+<link rel="license" href="THIRD_PARTY.txt">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%237cc255' d='M16 1 29 8v16l-13 7L3 24V8z'/%3E%3C/svg%3E">
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#100d20;color:#ece4d4;font:14px system-ui,sans-serif}
+canvas{display:block;width:100vw!important;height:100dvh!important;touch-action:none;outline:none}
+#loading{position:absolute;inset:0;display:grid;place-content:center;gap:12px;text-align:center;pointer-events:none}
+#loading strong{font-size:22px;font-weight:500;letter-spacing:.24em}#loading span{color:#b3a6ba}#loading[hidden]{display:none}
+</style>
+<canvas id="game" tabindex="0" role="application" aria-label="Claim Lands planet. Drag to rotate, scroll to zoom, N for next seed, 0 for ocean, plus and minus for world size." data-ready="false"></canvas>
+<div id="loading" role="status"><strong>CLAIM LANDS</strong><span>Growing a world…</span></div>
+<script type="module">
+const canvas=document.getElementById('game');
+const loading=document.getElementById('loading');
+try {
+  const revision=await fetch('./revision.txt',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Missing build revision');return r.text()});
+  canvas.dataset.revision=revision.trim();
+  const observer=new MutationObserver(()=>{
+    if(canvas.dataset.error){loading.hidden=false;loading.querySelector('span').textContent=canvas.dataset.error;}
+    else if(canvas.dataset.ready==='true'){loading.hidden=true;}
+  });
+  observer.observe(canvas,{attributes:true,attributeFilter:['data-ready','data-error']});
+  const {default:init}=await import('./claimlands.js');
+  await init();canvas.focus();
+} catch(error) {
+  canvas.dataset.error=String(error);loading.querySelector('span').textContent=String(error);console.error(error);
+}
+</script>
+</html>
