@@ -53,7 +53,7 @@ for (variant in listOf("debug", "release")) {
         // source or feature changes cannot leave stale packaged shared libraries.
         val args = mutableListOf("cargo", "ndk", "--platform", "26")
         rustAbis.forEach { args += listOf("--target", it) }
-        args += listOf("--output", nativeLibraries.get().asFile.absolutePath,
+        args += listOf("-o", nativeLibraries.get().asFile.absolutePath,
             "build", "--locked", "--package", "claimlands-game", "--lib")
         if (variant == "release") args += "--release"
         commandLine(args)
@@ -64,6 +64,7 @@ for (variant in listOf("debug", "release")) {
             check(ndkDirectory.resolve("source.properties").readText()
                 .contains("Pkg.Revision = $pinnedNdk")) { "Install pinned NDK $pinnedNdk" }
             environment("ANDROID_NDK_HOME", ndkDirectory.absolutePath)
+            environment("ANDROID_NDK_ROOT", ndkDirectory.absolutePath)
             val flags = System.getenv("RUSTFLAGS").orEmpty()
             environment("RUSTFLAGS", "$flags -C link-arg=-Wl,-z,max-page-size=16384")
         }

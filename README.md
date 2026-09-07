@@ -52,6 +52,7 @@ Give the resulting brief to the agent explicitly. Read [AGENTS.md](AGENTS.md) an
 | [Rules](docs/rules.md) | Authoritative game behavior and open mechanics |
 | [Decisions](docs/decisions.md) | Stack and format rationale |
 | [Testing](docs/testing.md) | Required gates and failure handling |
+| [Governance](docs/governance.md) | Trusted CI, publication protections and previews |
 | [Roadmap](docs/roadmap.md) | Milestones and issue scope |
 
 The external HTML prototype is a visual reference only. Its runtime is never bundled.

@@ -18,9 +18,10 @@ fn main() -> ExitCode {
 }
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("workspace exists")
+        .ancestors()
+        .nth(2)
+        .expect("xtask is inside tools in the workspace")
+        .to_path_buf()
 }
 fn command(program: &str, args: &[&str]) -> Result<(), String> {
     let status = Command::new(program)

@@ -119,8 +119,9 @@ jobs:
           cp -R "$RUNNER_TEMP/references/tests/baselines/." tests/baselines/
           cp -R "$RUNNER_TEMP/references/tests/browser/." tests/browser/
           cp "$RUNNER_TEMP/references/playwright.config.ts" playwright.config.ts
-          npx playwright test --grep deployed
-        env: { CI: 'true', EXPECTED_REVISION: '${{ env.HEAD_SHA }}' }
+          sudo apt-get install -y xvfb xauth libvulkan1 mesa-vulkan-drivers
+          xvfb-run -a npx playwright test --grep deployed
+        env: { CI: 'true', EXPECTED_REVISION: '${{ env.HEAD_SHA }}', CLAIMLANDS_HEADED: '1', DEBUG: 'pw:browser' }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with: { name: 'game-${{ env.HEAD_SHA }}', path: dist/, if-no-files-found: error }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -315,10 +316,13 @@ jobs:
         with: { node-version: '22.16.0' }
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --grep deployed
+      - run: |
+          sudo apt-get install -y xvfb xauth libvulkan1 mesa-vulkan-drivers
+          xvfb-run -a npx playwright test --grep deployed
         env:
           PREVIEW_URL: ${{ needs.deploy.outputs.url }}
           EXPECTED_REVISION: ${{ env.HEAD_SHA }}
+          CLAIMLANDS_HEADED: '1'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with: { name: 'preview-evidence-${{ env.HEAD_SHA }}', path: playwright-report/, if-no-files-found: error }

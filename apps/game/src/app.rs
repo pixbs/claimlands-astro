@@ -319,13 +319,20 @@ impl Game {
         });
         if pressed {
             self.drag_distance = 0.;
-            self.dragging = !self.context.is_pointer_over_egui();
+            self.dragging = !self.pointer_over_controls();
         } else {
             if self.dragging && self.drag_distance < 5. {
                 self.pick();
             }
             self.dragging = false;
         }
+    }
+    fn pointer_over_controls(&self) -> bool {
+        // UI input is consumed once per frame. Mouse/touch events between frames
+        // must be hit-tested at their current position rather than cached hover.
+        self.context
+            .layer_id_at(self.cursor)
+            .is_some_and(|layer| layer.order != egui::Order::Background)
     }
     fn draw(&mut self) {
         if self.renderer.as_ref().is_some_and(Renderer::is_device_lost) {
@@ -530,7 +537,7 @@ impl ApplicationHandler<UserEvent> for Game {
                     MouseScrollDelta::LineDelta(_, y) => y,
                     MouseScrollDelta::PixelDelta(p) => p.y as f32 / 80.,
                 };
-                if !self.context.is_pointer_over_egui() {
+                if !self.pointer_over_controls() {
                     self.distance = (self.distance * (1. - amount * 0.08)).clamp(1.35, 6.);
                     self.publish();
                 }

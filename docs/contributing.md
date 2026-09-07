@@ -45,7 +45,7 @@ The owner must explicitly accept the current revision before merging. The merge 
 cargo xtask merge --pr 123 --approved-sha <full-approved-head-sha>
 ```
 
-The command does not establish approval by itself. Automatic merging stays disabled. Repository administrators must configure protections and preview credentials before publication can be considered enforced.
+The command does not establish approval by itself. Automatic merging stays disabled. See [governance](governance.md) for configured protections, validation provenance, preview credentials, and enforcement limits.
 
 ## Concise documentation
 

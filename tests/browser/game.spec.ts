@@ -72,3 +72,28 @@ test('deployed game survives repeated regeneration and viewport changes', async 
   }
   expect(errors).toEqual([]);
 });
+
+test('deployed game routes same-frame pointer input at its current position', async ({ page }, testInfo) => {
+  const game = await openGame(page, testInfo);
+  await page.mouse.move(100, 80);
+  // Let the UI observe a pointer over its window, then send the complete drag
+  // before its next frame. Routing must use the new position, not cached hover.
+  await page.evaluate(() => new Promise<void>(resolve =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const rotation = await game.getAttribute('data-rotation');
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => {
+    const canvas = document.querySelector('#game')!;
+    for (const [type, x, y, buttons] of [
+      ['pointermove', 740, 400, 0], ['pointerdown', 740, 400, 1],
+      ['pointermove', 800, 430, 1], ['pointerup', 800, 430, 0],
+    ] as const) {
+      canvas.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, pointerId: 1, pointerType: 'mouse', isPrimary: true,
+        button: type === 'pointermove' ? -1 : 0, buttons, clientX: x, clientY: y,
+      }));
+    }
+    resolve();
+  })));
+  await expect(game).not.toHaveAttribute('data-rotation', rotation!);
+  await expect(game).not.toHaveAttribute('data-error');
+});
