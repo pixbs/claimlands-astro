@@ -89,7 +89,10 @@ impl Renderer {
             .request_device(&wgpu::DeviceDescriptor {
                 label: Some("Claim Lands device"),
                 required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::downlevel_webgl2_defaults(),
+                // Keep feature limits portable, but permit the adapter's actual
+                // display resolution (phone surfaces commonly exceed 2048px).
+                required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+                    .using_resolution(adapter.limits()),
                 ..Default::default()
             })
             .await

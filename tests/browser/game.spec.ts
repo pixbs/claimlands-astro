@@ -56,7 +56,10 @@ test('deployed game survives repeated regeneration and viewport changes', async 
     await expect(game).toHaveAttribute('data-frequency', String(2 + seed));
     await expect(game).toHaveAttribute('data-tile-count', String(10 * (2 + seed) ** 2 + 2));
   }
-  for (const viewport of [{ width: 540, height: 900 }, { width: 1440, height: 700 }]) {
+  for (const viewport of [
+    { width: 540, height: 900 }, { width: 1440, height: 700 },
+    { width: 1179, height: 2556 },
+  ]) {
     await page.setViewportSize(viewport);
     await expect(game).toHaveJSProperty('width', viewport.width);
     await expect(game).toHaveJSProperty('height', viewport.height);
