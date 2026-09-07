@@ -12,14 +12,14 @@ require(rustAbis.isNotEmpty() && rustAbis.all { it in setOf("arm64-v8a", "x86_64
 
 android {
     namespace = "net.pixbs.claimlands"
-    compileSdk = 35
-    buildToolsVersion = "35.0.0"
+    compileSdk = 37
+    buildToolsVersion = "37.0.0"
     ndkVersion = pinnedNdk
 
     defaultConfig {
         applicationId = "net.pixbs.claimlands"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
         ndk { abiFilters += rustAbis }
@@ -38,6 +38,8 @@ android {
     lint {
         abortOnError = true
         warningsAsErrors = true
+        textReport = true
+        textOutput = file("build/reports/lint-results.txt")
     }
 }
 

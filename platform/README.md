@@ -11,12 +11,12 @@ device-independent failure-path checks with
 
 ## Android
 
-Use JDK 17, SDK/build-tools 35, NDK 27.2.12479018, cargo-ndk 4.1.2, and the checked-in
-Gradle 8.11.1 wrapper. AGP is pinned to 8.9.1. `ANDROID_HOME` points to the SDK;
+Use JDK 17, SDK/build-tools 37, NDK 27.2.12479018, cargo-ndk 4.1.2, and
+Gradle 9.3.1. AGP is pinned to 9.1.1. `ANDROID_HOME` points to the SDK;
 `JAVA_HOME` and `PATH` must select JDK 17. These are the CI setup/build commands:
 
 ```sh
-sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+sdkmanager 'platform-tools' 'platforms;android-37' 'build-tools;37.0.0' 'ndk;27.2.12479018'
 rustup target add aarch64-linux-android x86_64-linux-android
 cargo install cargo-ndk --version 4.1.2 --locked
 bash platform/android/build.sh debug
@@ -29,7 +29,7 @@ for an emulator-only build. Windows contributors can run `gradlew.bat` with
 The Gradle tasks invoke Cargo themselves and package the current Rust output.
 Release APKs are unsigned; signing and store distribution need separate setup.
 
-On a booted API 35 emulator with a working GLES 3.0/Vulkan implementation:
+On a booted API 37 emulator with a working GLES 3.0/Vulkan implementation:
 
 ```sh
 ANDROID_SERIAL=emulator-5554 bash platform/android/smoke.sh

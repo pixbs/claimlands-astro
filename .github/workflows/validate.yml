@@ -194,13 +194,13 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - name: Install and verify the pinned Android SDK
         run: |
-          sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+          sdkmanager 'platform-tools' 'platforms;android-37' 'build-tools;37.0.0' 'ndk;27.2.12479018'
           test -n "$ANDROID_HOME"
           ndk="$ANDROID_HOME/ndk/27.2.12479018"
           test -x "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
           grep -F 'Pkg.Revision = 27.2.12479018' "$ndk/source.properties"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
-          echo '2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046  platform/android/gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
+          echo 'b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13  platform/android/gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
       - run: bash platform/android/build.sh debug
       - name: Allow emulator acceleration
         run: |
@@ -209,7 +209,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
-          api-level: 35
+          api-level: 37
           target: google_apis
           arch: x86_64
           profile: pixel_6
@@ -223,6 +223,7 @@ jobs:
           name: android-${{ env.HEAD_SHA }}
           path: |
             platform/android/app/build/outputs/
+            platform/android/app/build/reports/
             test-results/android/
           if-no-files-found: error
 
