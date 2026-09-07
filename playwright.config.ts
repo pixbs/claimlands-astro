@@ -4,11 +4,8 @@ import { defineConfig } from '@playwright/test';
 // Chromium's Windows WebGPU adapter discovery. Both projects use the Chromium
 // revision bundled with the exact Playwright version in package-lock.json.
 const webgpuArgs = ['--enable-unsafe-webgpu', '--use-webgpu-adapter=swiftshader'];
-if (process.platform === 'linux') {
-  // Chromium's documented headless Vulkan route, using its software driver.
-  webgpuArgs.push('--enable-features=Vulkan', '--use-angle=vulkan',
-    '--use-vulkan=swiftshader', '--disable-vulkan-surface');
-}
+// Select Dawn's software adapter without also forcing the browser compositor
+// onto Vulkan. The latter loses its GPU process on Linux CI.
 
 export default defineConfig({
   testDir: './tests/browser',
@@ -34,6 +31,7 @@ export default defineConfig({
     {
       name: 'webgl',
       metadata: { backend: 'webgl' },
+      testMatch: ['game.spec.ts', 'visual.spec.ts'],
       use: {
         browserName: 'chromium',
         launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
@@ -42,7 +40,7 @@ export default defineConfig({
     {
       name: 'webgpu',
       metadata: { backend: 'webgpu' },
-      testMatch: 'game.spec.ts',
+      testMatch: ['game.spec.ts', 'recovery.spec.ts'],
       use: {
         browserName: 'chromium',
         launchOptions: { args: webgpuArgs },

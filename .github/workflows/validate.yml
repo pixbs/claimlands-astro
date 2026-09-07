@@ -250,7 +250,7 @@ jobs:
           echo "090ec29491aad50aec10631bf6e62253fed733c50f3aab0f5ffc86bc170bdbef  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 --check
           unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
           "$RUNNER_TEMP/xcodegen/bin/xcodegen" --version | grep -Fx 'Version: 2.45.4'
-          lipo -verify_arch "$(uname -m)" "$RUNNER_TEMP/xcodegen/bin/xcodegen"
+          lipo "$RUNNER_TEMP/xcodegen/bin/xcodegen" -verify_arch "$(uname -m)"
           echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
       - run: bash platform/ios/build.sh simulator
       - run: bash platform/ios/build.sh device

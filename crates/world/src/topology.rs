@@ -129,13 +129,7 @@ impl Topology {
             .into_iter()
             .enumerate()
             .map(|(i, center)| {
-                let anchor = if center[1].abs() < 0.9 {
-                    [0., 1., 0.]
-                } else {
-                    [1., 0., 0.]
-                };
-                let right = normalize(cross(anchor, center));
-                let up = cross(center, right);
+                let (right, up) = tangent_frame(center);
                 corners[i].sort_by(|a, b| {
                     libm::atan2(dot(*a, up), dot(*a, right))
                         .total_cmp(&libm::atan2(dot(*b, up), dot(*b, right)))
@@ -158,6 +152,17 @@ impl Topology {
 fn dot(a: [f64; 3], b: [f64; 3]) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
+// A stable frame fixes the polygon's starting corner (and therefore texture
+// orientation). At the inclusive polar boundary, use X to avoid aligning with Y.
+fn tangent_frame(center: [f64; 3]) -> ([f64; 3], [f64; 3]) {
+    let anchor = if center[1].abs() < 0.9 {
+        [0., 1., 0.]
+    } else {
+        [1., 0., 0.]
+    };
+    let right = normalize(cross(anchor, center));
+    (right, cross(center, right))
+}
 fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
     [
         a[1] * b[2] - a[2] * b[1],
@@ -173,6 +178,21 @@ fn normalize(p: [f64; 3]) -> [f64; 3] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn polar_boundary_has_a_stable_texture_orientation() {
+        for y in [0.9_f64, -0.9_f64] {
+            let center = [libm::sqrt(1. - y * y), y, 0.];
+            let (right, up) = tangent_frame(center);
+            assert_eq!(right, [0., 0., y.signum()]);
+            assert!(dot(right, center).abs() < 1e-12);
+            assert!(dot(up, center).abs() < 1e-12);
+            assert!((dot(up, up) - 1.).abs() < 1e-12);
+        }
+        let y = 0.9_f64.next_down();
+        let (right, _) = tangent_frame([libm::sqrt(1. - y * y), y, 0.]);
+        assert_eq!(right, [0., 0., -1.]);
+    }
 
     #[test]
     fn cross_product_is_perpendicular_and_changes_sign_when_reversed() {
