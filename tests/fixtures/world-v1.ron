@@ -1,0 +1,25 @@
+// Generator v1 compatibility fixtures. Updating these requires owner review.
+// Counts and fingerprints are checked by the same native and browser test.
+[
+    (
+        frequency: 2,
+        seed: 0,
+        grass_tiles: 0,
+        first_neighbors: [1, 3, 6, 9, 12],
+        fingerprint: "536eed3c59ef828bc0555b36d5156a62729814cc06f58805b202618e044dc40c",
+    ),
+    (
+        frequency: 8,
+        seed: 63352,
+        grass_tiles: 320,
+        first_neighbors: [1, 9, 45, 81, 117],
+        fingerprint: "b77e62de65339bd57720ca6dd6ecff333fe813558e67eedd505df3617fe6b035",
+    ),
+    (
+        frequency: 12,
+        seed: 18446744073709551615,
+        grass_tiles: 599,
+        first_neighbors: [1, 13, 91, 169, 247],
+        fingerprint: "639f81d9832b209524d3fdab8f43a2de89c812825e7ad32632a83d209c879b05",
+    ),
+]

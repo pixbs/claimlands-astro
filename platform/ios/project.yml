@@ -1,0 +1,69 @@
+name: ClaimLands
+options:
+  minimumXcodeGenVersion: 2.45.4
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    ENABLE_USER_SCRIPT_SANDBOXING: "YES"
+    SWIFT_VERSION: "5.0"
+    CLANG_ENABLE_MODULES: "YES"
+    CLANG_ENABLE_OBJC_ARC: "YES"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  ClaimLands:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.pixbs.claimlands
+        INFOPLIST_FILE: Info.plist
+        GENERATE_INFOPLIST_FILE: "NO"
+        LIBRARY_SEARCH_PATHS:
+          - "$(inherited)"
+          - "$(PROJECT_DIR)/../../target/$(CLAIMLANDS_RUST_TARGET)/$(CLAIMLANDS_RUST_PROFILE)"
+        OTHER_LDFLAGS:
+          - "$(inherited)"
+          - "-lclaimlands_game"
+          - "-lobjc"
+          - "-lc++"
+          - "-liconv"
+    dependencies:
+      - sdk: UIKit.framework
+      - sdk: Foundation.framework
+      - sdk: CoreFoundation.framework
+      - sdk: CoreGraphics.framework
+      - sdk: CoreText.framework
+      - sdk: QuartzCore.framework
+      - sdk: Metal.framework
+      - sdk: GameController.framework
+      - sdk: Security.framework
+  ClaimLandsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.pixbs.claimlands.uitests
+        GENERATE_INFOPLIST_FILE: "YES"
+    dependencies:
+      - target: ClaimLands
+schemes:
+  ClaimLands:
+    build:
+      targets:
+        ClaimLands: all
+        ClaimLandsUITests: [test]
+    test:
+      gatherCoverageData: false
+      targets:
+        - name: ClaimLandsUITests
+          parallelizable: false
+          randomExecutionOrder: false

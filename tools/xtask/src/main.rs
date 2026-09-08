@@ -18,9 +18,10 @@ fn main() -> ExitCode {
 }
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("workspace exists")
+        .ancestors()
+        .nth(2)
+        .expect("xtask is inside tools in the workspace")
+        .to_path_buf()
 }
 fn command(program: &str, args: &[&str]) -> Result<(), String> {
     let status = Command::new(program)
@@ -68,14 +69,7 @@ fn run() -> Result<(), String> {
             let pr=option(&args,"--pr").ok_or("supply --pr NUMBER")?;
             let sha=option(&args,"--approved-sha").ok_or("supply owner's --approved-sha SHA")?;
             if !pr.chars().all(|x|x.is_ascii_digit()) || sha.len()!=40 || !sha.chars().all(|x|x.is_ascii_hexdigit()) {return Err("invalid PR or SHA".into());}
-            command("python",&["tools/policy.py","--pr",pr])?;
-            let data=capture("gh",&["pr","view",pr,"--repo","pixbs/claimlands-astro","--json","headRefOid,baseRefName"])?;
-            let value:serde_json::Value=serde_json::from_str(&data).map_err(|e|e.to_string())?;
-            if value["headRefOid"]!=sha || value["baseRefName"]!="main" {return Err("only the approved current SHA targeting main can merge".into());}
-            command("python",&["tools/verify_validation.py","--pr",pr,"--approved-sha",sha])?;
-            command("python",&["tools/policy.py","--pr",pr])?;
-            command("gh",&["pr","checks",pr,"--repo","pixbs/claimlands-astro","--required"])?;
-            command("gh",&["pr","merge",pr,"--repo","pixbs/claimlands-astro","--rebase","--match-head-commit",sha])
+            command("python",&["-I","tools/merge.py","--pr",pr,"--approved-sha",sha])
         }
         _=>Err("usage: cargo xtask check | boundaries | web | policy | task prepare --issue N --role implementer|reviewer [--base REF] | merge --pr N --approved-sha SHA".into()),
     }
