@@ -18,7 +18,7 @@ java_version="$(java -version 2>&1)"
   echo 'Set JAVA_HOME and PATH to JDK 21.' >&2; exit 1;
 }
 if bash "$project_dir/gradlew" --project-dir "$project_dir" --no-daemon \
-  ":app:$task" :app:lint "$@" "-PrustAbis=${CLAIMLANDS_ANDROID_ABIS:-arm64-v8a,x86_64}"; then
+  ":app:$task" :app:lint "$@"; then
   exit 0
 else
   result=$?

@@ -4,11 +4,6 @@ plugins {
 
 val workspaceRoot = rootProject.projectDir.resolve("../..").canonicalFile
 val pinnedNdk = "27.2.12479018"
-val rustAbis = providers.gradleProperty("rustAbis").orElse("arm64-v8a,x86_64")
-    .get().split(',').map(String::trim)
-require(rustAbis.isNotEmpty() && rustAbis.all { it in setOf("arm64-v8a", "x86_64") }) {
-    "rustAbis must contain arm64-v8a and/or x86_64"
-}
 
 android {
     namespace = "net.pixbs.claimlands"
@@ -22,7 +17,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
-        ndk { abiFilters += rustAbis }
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
     buildTypes {
         debug { isDebuggable = true }
@@ -60,7 +55,7 @@ androidComponents.onVariants { variant ->
         // source or feature changes cannot leave stale packaged shared libraries.
         outputs.upToDateWhen { false }
         val args = mutableListOf("cargo", "ndk", "--platform", "26")
-        rustAbis.forEach { args += listOf("--target", it) }
+        android.defaultConfig.ndk.abiFilters.sorted().forEach { args += listOf("--target", it) }
         args += listOf("-o", nativeLibraries.get().asFile.absolutePath,
             "build", "--locked", "--package", "claimlands-game", "--lib")
         if (variant.buildType == "release") args += "--release"

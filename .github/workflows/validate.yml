@@ -40,13 +40,10 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: { ref: '${{ env.HEAD_SHA }}', fetch-depth: 0, persist-credentials: false }
-      - name: Preserve the trusted validators
+      - name: Stage trusted validation controls
         run: |
-          git archive "$TRUSTED_SHA" tools .cargo/config.toml .config/nextest.toml deny.toml | tar -x -C "$RUNNER_TEMP"
-          cp -R "$RUNNER_TEMP/tools/xtask/." tools/xtask/
-          cp "$RUNNER_TEMP/deny.toml" deny.toml
-          cp "$RUNNER_TEMP/.cargo/config.toml" .cargo/config.toml
-          cp "$RUNNER_TEMP/.config/nextest.toml" .config/nextest.toml
+          git archive "$TRUSTED_SHA" tools/stage_validation.py | tar -x -C "$RUNNER_TEMP"
+          python -I "$RUNNER_TEMP/tools/stage_validation.py" "$TRUSTED_SHA"
       - run: rustup toolchain install 1.95.0 --profile minimal --component clippy,rustfmt,llvm-tools-preview --target wasm32-unknown-unknown
       - uses: taiki-e/install-action@84f5ac3124727fb3d284d4d22ee9ab3654fd09a6 # v2
         with:
@@ -63,7 +60,7 @@ jobs:
       - run: python -m unittest discover -s tools -p 'test_*.py' -v
       - run: python -m unittest discover -s platform/tests -v
       - run: cargo nextest run --locked --workspace --profile ci
-      - run: python "$RUNNER_TEMP/tools/verify_reports.py" junit target/nextest/ci/junit.xml
+      - run: python -I tools/verify_reports.py junit target/nextest/ci/junit.xml
       - run: cargo test --locked --workspace --doc
       - name: Per-library and changed-line coverage
         run: |
@@ -91,13 +88,19 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: { ref: '${{ env.HEAD_SHA }}', fetch-depth: 0, persist-credentials: false }
+      - name: Stage trusted validation controls and browser harness
+        run: |
+          git archive "$TRUSTED_SHA" tools/stage_validation.py | tar -x -C "$RUNNER_TEMP"
+          python -I "$RUNNER_TEMP/tools/stage_validation.py" "$TRUSTED_SHA" --harness "$RUNNER_TEMP/browser-harness"
       - run: rustup toolchain install 1.95.0 --profile minimal --target wasm32-unknown-unknown
       - uses: taiki-e/install-action@84f5ac3124727fb3d284d4d22ee9ab3654fd09a6
         with: { tool: 'wasm-bindgen-cli@0.2.128,cargo-about@0.9.2' }
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: { node-version: '22.16.0' }
       - run: npm ci --ignore-scripts
+        working-directory: ${{ runner.temp }}/browser-harness
       - run: npx playwright install --with-deps chromium
+        working-directory: ${{ runner.temp }}/browser-harness
       - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4
         id: chrome
         with: { chrome-version: '152.0.7977.82', install-chromedriver: true }
@@ -112,14 +115,12 @@ jobs:
           CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - run: cargo xtask web
         env: { CLAIMLANDS_REVISION: '${{ env.HEAD_SHA }}' }
-      - name: Compare with trusted visual references
+      - name: Run the trusted browser journeys against the game artifact
         run: |
-          mkdir -p "$RUNNER_TEMP/references"
-          git archive "$TRUSTED_SHA" tests/browser tests/baselines playwright.config.ts | tar -x -C "$RUNNER_TEMP/references"
-          cp -R "$RUNNER_TEMP/references/tests/baselines/." tests/baselines/
-          cp -R "$RUNNER_TEMP/references/tests/browser/." tests/browser/
-          cp "$RUNNER_TEMP/references/playwright.config.ts" playwright.config.ts
+          python -I tools/check_artifact.py dist
+          cp -R dist "$RUNNER_TEMP/browser-harness/dist"
           sudo apt-get install -y xvfb xauth libvulkan1 mesa-vulkan-drivers
+          cd "$RUNNER_TEMP/browser-harness"
           xvfb-run -a npx playwright test --grep deployed
         env: { CI: 'true', EXPECTED_REVISION: '${{ env.HEAD_SHA }}', CLAIMLANDS_HEADED: '1', DEBUG: 'pw:browser' }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -129,8 +130,8 @@ jobs:
         with:
           name: browser-evidence-${{ env.HEAD_SHA }}
           path: |
-            playwright-report/
-            test-results/
+            ${{ runner.temp }}/browser-harness/playwright-report/
+            ${{ runner.temp }}/browser-harness/test-results/
             wasm-contracts.log
           if-no-files-found: error
 
@@ -159,6 +160,10 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: { ref: '${{ env.HEAD_SHA }}', fetch-depth: 0, persist-credentials: false }
+      - name: Stage trusted validation controls
+        run: |
+          git archive "$TRUSTED_SHA" tools/stage_validation.py | tar -x -C "$RUNNER_TEMP"
+          python -I "$RUNNER_TEMP/tools/stage_validation.py" "$TRUSTED_SHA"
       - run: rustup toolchain install 1.95.0 --profile minimal
       - uses: taiki-e/install-action@84f5ac3124727fb3d284d4d22ee9ab3654fd09a6
         with: { tool: 'cargo-mutants@27.1.0' }
@@ -167,8 +172,7 @@ jobs:
           base="$BASE_SHA"
           if [[ -z "$base" || "$base" =~ ^0+$ ]]; then base=$(git hash-object -t tree /dev/null); fi
           git diff "$base" "$HEAD_SHA" -- crates/world/src crates/visuals/src > changed.diff
-          git archive "$TRUSTED_SHA" tools | tar -x -C "$RUNNER_TEMP"
-          python "$RUNNER_TEMP/tools/run_mutations.py" changed.diff
+          python -I tools/run_mutations.py changed.diff
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with: { name: 'mutation-evidence-${{ env.HEAD_SHA }}', path: mutants.out/, if-no-files-found: error }
@@ -181,7 +185,11 @@ jobs:
       CLAIMLANDS_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: { ref: '${{ env.HEAD_SHA }}', persist-credentials: false }
+        with: { ref: '${{ env.HEAD_SHA }}', fetch-depth: 0, persist-credentials: false }
+      - name: Stage trusted validation controls
+        run: |
+          git archive "$TRUSTED_SHA" tools/stage_validation.py | tar -x -C "$RUNNER_TEMP"
+          python -I "$RUNNER_TEMP/tools/stage_validation.py" "$TRUSTED_SHA"
       - run: rustup toolchain install 1.95.0 --profile minimal --target aarch64-linux-android,x86_64-linux-android
       - uses: taiki-e/install-action@84f5ac3124727fb3d284d4d22ee9ab3654fd09a6
         with: { tool: 'cargo-ndk@4.1.2' }
@@ -200,7 +208,7 @@ jobs:
           test -x "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
           grep -F 'Pkg.Revision = 27.2.12479018' "$ndk/source.properties"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
-          echo 'b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13  platform/android/gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
+          echo '7a9ce74cff467ca1bf60a4fcd9f05185acceda4d0f382434d393e17864262c5d  platform/android/gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
       - run: bash platform/android/build.sh debug
       - name: Allow emulator acceleration
         run: |
@@ -236,7 +244,11 @@ jobs:
       CLAIMLANDS_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with: { ref: '${{ env.HEAD_SHA }}', persist-credentials: false }
+        with: { ref: '${{ env.HEAD_SHA }}', fetch-depth: 0, persist-credentials: false }
+      - name: Stage trusted validation controls
+        run: |
+          git archive "$TRUSTED_SHA" tools/stage_validation.py | tar -x -C "$RUNNER_TEMP"
+          python -I "$RUNNER_TEMP/tools/stage_validation.py" "$TRUSTED_SHA"
       - run: rustup toolchain install 1.95.0 --profile minimal --target aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
       - name: Verify Xcode and simulator architecture
         run: |

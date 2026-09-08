@@ -39,13 +39,30 @@ Every PR links its issue and includes problem, resulting behavior, validation ev
 
 Run `cargo xtask check` and the issue's other [required tests](testing.md). Report actual results, including unavailable checks. An independent reviewer examines the diff, contracts and test evidence; review does not replace CI. Never lower a threshold, remove an assertion or replace an expected image to hide a failure.
 
-The owner must explicitly accept the current revision before merging. The merge helper takes that approved SHA, rechecks policy and required checks, and rejects a changed head or a PR not targeting `main`:
+The owner must explicitly accept the current revision before merging. Use an
+isolated checkout of current `main` for the owner merge entry point. From a
+trusted local checkout, fetch the repository's main branch and prepare a new
+detached worktree; replace `MERGE_CHECKOUT` with a new directory:
 
 ```text
-cargo xtask merge --pr 123 --approved-sha <full-approved-head-sha>
+git fetch https://github.com/pixbs/claimlands-astro.git main
+git worktree add --detach MERGE_CHECKOUT FETCH_HEAD
+cd MERGE_CHECKOUT
+python -I tools/merge.py --pr 123 --approved-sha <full-approved-head-sha>
 ```
 
-The command does not establish approval by itself. Automatic merging stays disabled. See [governance](governance.md) for configured protections, validation provenance, preview credentials, and enforcement limits.
+The script verifies its checkout against GitHub's current `main` SHA, requires
+no tracked or untracked edits, and rejects a candidate branch. It loads policy
+and validation checks from verified Git source, verifies the actual trusted
+Actions run, and merges only the approved head targeting `main`. A stale
+checkout requires a fresh fetch and worktree. Keep the worktree free of build
+outputs; no Cargo build or npm installation is needed for this command.
+
+`cargo xtask merge` delegates to the same main-only check. Use the direct Python
+entry point above for acceptance: invoking Cargo in candidate code does not make
+that code trusted. Neither command establishes owner approval by itself.
+Automatic merging stays disabled. See [governance](governance.md) for configured
+protections, validation provenance, preview credentials, and enforcement limits.
 
 ## Concise documentation
 

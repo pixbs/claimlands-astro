@@ -16,12 +16,21 @@ therefore need owner review before they govern subsequent PRs. Testing a propose
 workflow through `workflow_dispatch` is useful evidence, but cannot authorize a
 merge through the merge helper.
 
-After owner acceptance, `cargo xtask merge --pr N --approved-sha SHA` checks the
-entire introduced history and current metadata again. It verifies the actual
-workflow ID, trigger, revision, completed jobs, run attempt, and validation
-manifest, then rechecks the head before requesting a rebase merge. Missing,
-skipped, stale, or unsuccessful evidence is rejected. A green status by itself
-is insufficient.
+The owner merge entry point is `python -I tools/merge.py`, run from an isolated,
+clean checkout of the verified current GitHub `main` revision. Follow the
+[checkout procedure](contributing.md#review-and-acceptance); do not run merge
+tooling from the candidate checkout. The entry point rejects feature branches,
+stale main revisions, and tracked or untracked changes. It loads policy and
+provenance validators directly from that Git revision, avoiding local import
+paths and bytecode caches.
+
+After explicit owner acceptance, it checks the entire introduced history,
+metadata, actual workflow ID and trigger, completed jobs, run attempt, and
+validation manifest. It rechecks main and the approved head before requesting a
+rebase merge with an expected-head condition. Missing, skipped, stale, or
+unsuccessful evidence is rejected. A green status by itself is insufficient.
+The Cargo command delegates to this entry point; it does not make arbitrary
+candidate Cargo tooling trustworthy or establish owner approval.
 
 GitHub status rules cannot bind a context to an individual workflow on this
 personal repository. The helper verifies that stronger condition; an owner using
@@ -29,6 +38,14 @@ another merge route must perform the same review. Shared owner credentials canno
 technically distinguish a person from an agent. A dedicated publishing GitHub App
 or an organization with required-workflow controls is the next step if credential
 separation becomes necessary.
+
+Validation staging replaces complete Cargo configuration and tooling directories,
+so candidate-only config files and automatically discovered targets cannot
+survive an overlay. Browser tooling uses a fresh trusted harness, npm manifests,
+and lockfile. Submitted build scripts still execute within their build runner;
+this does not establish isolation against arbitrary hostile code modifying that
+runner or its reports. Deployment credentials remain in the separate publisher
+job. Stronger isolation of build execution would require an additional sandbox.
 
 ## Publication policy
 
