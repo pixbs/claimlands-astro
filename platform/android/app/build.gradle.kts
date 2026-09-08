@@ -43,21 +43,27 @@ android {
     }
 }
 
-for (variant in listOf("debug", "release")) {
-    val capitalized = variant.replaceFirstChar(Char::uppercaseChar)
-    val nativeLibraries = layout.buildDirectory.dir("rust/$variant/jniLibs")
-    android.sourceSets.getByName(variant).jniLibs.srcDir(nativeLibraries)
-    val rustBuild = tasks.register<Exec>("buildRust$capitalized") {
+abstract class BuildRustTask : Exec() {
+    @get:OutputDirectory
+    abstract val nativeLibraries: DirectoryProperty
+}
+
+androidComponents.onVariants { variant ->
+    val capitalized = variant.name.replaceFirstChar(Char::uppercaseChar)
+    val nativeLibraries = layout.buildDirectory.dir("rust/${variant.name}/jniLibs")
+    val rustBuild = tasks.register<BuildRustTask>("buildRust$capitalized") {
+        this.nativeLibraries.set(nativeLibraries)
         group = "build"
-        description = "Build the shared Rust game for $variant Android ABIs"
+        description = "Build the shared Rust game for ${variant.name} Android ABIs"
         workingDir = workspaceRoot
         // Cargo owns incremental compilation. Always invoke it so transitive Rust
         // source or feature changes cannot leave stale packaged shared libraries.
+        outputs.upToDateWhen { false }
         val args = mutableListOf("cargo", "ndk", "--platform", "26")
         rustAbis.forEach { args += listOf("--target", it) }
         args += listOf("-o", nativeLibraries.get().asFile.absolutePath,
             "build", "--locked", "--package", "claimlands-game", "--lib")
-        if (variant == "release") args += "--release"
+        if (variant.buildType == "release") args += "--release"
         commandLine(args)
         doFirst {
             val sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
@@ -71,7 +77,9 @@ for (variant in listOf("debug", "release")) {
             environment("RUSTFLAGS", "$flags -C link-arg=-Wl,-z,max-page-size=16384")
         }
     }
-    tasks.configureEach {
-        if (name == "merge${capitalized}JniLibFolders") dependsOn(rustBuild)
+    // The generated-source API wires packaging to the producer task and marks
+    // these libraries as generated, without depending on internal AGP task names.
+    checkNotNull(variant.sources.jniLibs).addGeneratedSourceDirectory(rustBuild) {
+        it.nativeLibraries
     }
 }
