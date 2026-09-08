@@ -29,6 +29,14 @@ Use [`cargo-mutants --in-diff`](https://mutants.rs/in-diff.html) for changed dom
 
 ## Available local checks
 
+CI compiles Android with SDK/target 37 and runs its required lifecycle suite on
+the API 36 Google APIs emulator image, using pinned emulator build 15917651 and
+Lavapipe rendering. The API 37 image has a reproduced system-compositor crash
+before application launch; [issue #23](https://github.com/pixbs/claimlands-astro/issues/23)
+tracks restoring that coverage. No Android 17 runtime success is claimed. iOS
+uses Xcode 16.4 and the iOS 18.5 simulator; physical-device release checks remain
+required. These runtime fixtures do not change the application's minimum OS versions.
+
 ```text
 cargo xtask check
 cargo xtask boundaries

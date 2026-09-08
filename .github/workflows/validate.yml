@@ -218,6 +218,7 @@ jobs:
       - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: '37.0'
+          system-image-api-level: '36'
           target: google_apis
           arch: x86_64
           profile: pixel_6
@@ -225,7 +226,7 @@ jobs:
           ram-size: 4096M
           heap-size: 512M
           emulator-build: '15917651'
-          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu lavapipe -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
           disable-linux-hw-accel: false
           script: bash platform/android/smoke.sh
