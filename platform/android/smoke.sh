@@ -13,11 +13,19 @@ adb get-state | grep -qx device
 [[ "$(adb shell getprop sys.boot_completed | tr -d '\r')" == 1 ]] || {
   echo 'The emulator/device has not finished booting.' >&2; exit 1;
 }
-adb install -r "$apk"
-adb shell am force-stop "$package"
-adb logcat -c
-capture_logs() { adb logcat -d -v threadtime > "$artifacts/logcat.txt"; }
+capture_logs() {
+  adb logcat -d -v threadtime > "$artifacts/logcat.txt"
+  adb shell df -h /data > "$artifacts/storage.txt"
+  adb shell cat /proc/meminfo > "$artifacts/memory.txt"
+}
 trap capture_logs EXIT
+adb logcat -c
+# Stage the APK before invoking Package Manager; avoid the streamed-install pipe
+# for native debug packages. A failed install is preserved, never retried.
+adb install --no-streaming -r "$apk"
+adb logcat -d -v threadtime > "$artifacts/install-logcat.txt"
+adb logcat -c
+adb shell am force-stop "$package"
 
 assert_alive() {
   local current_pid

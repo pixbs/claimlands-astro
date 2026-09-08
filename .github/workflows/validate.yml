@@ -222,6 +222,8 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disk-size: 8G
+          ram-size: 4096M
+          heap-size: 512M
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
           disable-linux-hw-accel: false
